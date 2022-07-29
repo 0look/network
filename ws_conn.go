@@ -75,6 +75,6 @@ func (server *WsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	wsConn.ServerIO()
 }
 
-func NewWebServer(sessionCreator func() Session) Server {
+func NewWsServer(sessionCreator func() Session) Server {
 	return &WsServer{sessionCreator: sessionCreator}
 }
