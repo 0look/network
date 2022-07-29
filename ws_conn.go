@@ -29,14 +29,12 @@ func (ws *WsConn) Close() {
 
 func (ws *WsConn) readPump() {
 	for {
-		mt, message, err := ws.conn.ReadMessage()
+		_, message, err := ws.conn.ReadMessage()
 		if err != nil {
 			log.Println("read is err:%v", err)
 			break
 		}
-		if mt == websocket.BinaryMessage {
-			ws.session.OnMessage(message)
-		}
+		ws.session.OnMessage(message)
 	}
 }
 
