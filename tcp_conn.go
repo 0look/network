@@ -12,6 +12,7 @@ type TCPConn struct {
 	session Session
 	writeCh chan []byte
 	once    sync.Once
+	server  *TCPServer
 }
 
 func (tcp *TCPConn) Close() {
@@ -46,7 +47,7 @@ loop:
 func (tcp *TCPConn) readPump() {
 	scanner := bufio.NewScanner(tcp.conn)
 	scanner.Buffer(make([]byte, 512), 512*2)
-	scanner.Split(ScanSplit)
+	scanner.Split(tcp.server.splitFunc)
 	for scanner.Scan() {
 		tcp.session.OnMessage(scanner.Bytes())
 	}
@@ -61,13 +62,18 @@ func (tcp *TCPConn) ServerIO() {
 	tcp.writePump()
 }
 
-func NewTCPConn(conn net.Conn, sessionCreator func() Session) *TCPConn {
-	tcpConn := &TCPConn{conn: conn, session: sessionCreator()}
+func (tcp *TCPConn) Write(b []byte) {
+	tcp.writeCh <- b
+}
+
+func NewTCPConn(conn net.Conn, server *TCPServer) *TCPConn {
+	tcpConn := &TCPConn{conn: conn, session: server.sessionCreator()}
 	return tcpConn
 }
 
 type TCPServer struct {
 	sessionCreator func() Session
+	splitFunc      bufio.SplitFunc
 }
 
 func (server *TCPServer) Start(addr string) error {
@@ -82,12 +88,12 @@ func (server *TCPServer) Start(addr string) error {
 			continue
 		}
 		go func() {
-			tcpConn := NewTCPConn(conn, server.sessionCreator)
+			tcpConn := NewTCPConn(conn, server)
 			tcpConn.ServerIO()
 		}()
 	}
 }
 
-func NewTCPServer(sessionCreator func() Session) *TCPServer {
-	return &TCPServer{sessionCreator: sessionCreator}
+func NewTCPServer(sessionCreator func() Session, splitFunc bufio.SplitFunc) *TCPServer {
+	return &TCPServer{sessionCreator: sessionCreator, splitFunc: splitFunc}
 }

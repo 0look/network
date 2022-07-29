@@ -24,6 +24,7 @@ var (
 
 type Conn interface {
 	Close()
+	Write([]byte)
 }
 
 type Session interface {

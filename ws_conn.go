@@ -47,6 +47,10 @@ func (ws *WsConn) writePump() {
 	}
 }
 
+func (ws *WsConn) Write(b []byte) {
+	ws.writeCh <- b
+}
+
 func NewWsConn(conn *websocket.Conn, sessionCreator func() Session) *WsConn {
 	wsConn := &WsConn{conn: conn, session: sessionCreator(), writeCh: make(chan []byte)}
 	return wsConn
