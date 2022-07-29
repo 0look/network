@@ -32,6 +32,10 @@ type Session interface {
 	OnDisConnect()
 }
 
+type Server interface {
+	Start(addr string) error
+}
+
 type Frame struct {
 	Body   []byte
 	Extend uint64
