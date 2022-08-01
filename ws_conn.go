@@ -11,14 +11,12 @@ import (
 type WsConn struct {
 	conn    *websocket.Conn
 	session Session
-	writeCh chan []byte
 	once    sync.Once
 }
 
 func (ws *WsConn) ServerIO() {
 	ws.session.OnConnect(ws)
-	go ws.readPump()
-	ws.writePump()
+	ws.readPump()
 }
 
 func (ws *WsConn) Close() {
@@ -39,17 +37,8 @@ func (ws *WsConn) readPump() {
 	}
 }
 
-func (ws *WsConn) writePump() {
-	for {
-		select {
-		case b := <-ws.writeCh:
-			ws.conn.WriteMessage(websocket.BinaryMessage, b)
-		}
-	}
-}
-
-func (ws *WsConn) Write(b []byte) {
-	ws.writeCh <- b
+func (ws *WsConn) Write(b []byte) error {
+	return ws.conn.WriteMessage(websocket.BinaryMessage, b)
 }
 
 func (ws *WsConn) GetSession() Session {
@@ -57,7 +46,7 @@ func (ws *WsConn) GetSession() Session {
 }
 
 func NewWsConn(conn *websocket.Conn, sessionCreator func() Session) *WsConn {
-	wsConn := &WsConn{conn: conn, session: sessionCreator(), writeCh: make(chan []byte)}
+	wsConn := &WsConn{conn: conn, session: sessionCreator()}
 	return wsConn
 }
 

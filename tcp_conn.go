@@ -11,9 +11,9 @@ import (
 type TCPConn struct {
 	conn    net.Conn
 	session Session
-	writeCh chan []byte
 	once    sync.Once
 	server  *TCPServer
+	done    chan struct{}
 }
 
 func (tcp *TCPConn) Close() {
@@ -29,18 +29,12 @@ func (tcp *TCPConn) writePump() {
 		ticker.Stop()
 		tcp.Close()
 	}()
-loop:
 	for {
 		select {
-		case data := <-tcp.writeCh:
-			tcp.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			_, err := tcp.conn.Write(data)
-			if err != nil {
-				log.Printf("network write err:%v", err)
-				break loop
-			}
 		case <-ticker.C:
 			tcp.conn.SetWriteDeadline(time.Now().Add(writeWait))
+		case <-tcp.done:
+			return
 		}
 	}
 }
@@ -63,8 +57,13 @@ func (tcp *TCPConn) ServerIO() {
 	tcp.writePump()
 }
 
-func (tcp *TCPConn) Write(b []byte) {
-	tcp.writeCh <- b
+func (tcp *TCPConn) Write(b []byte) error {
+	tcp.conn.SetWriteDeadline(time.Now().Add(writeWait))
+	_, err := tcp.conn.Write(b)
+	if err != nil {
+		log.Printf("network write err:%v", err)
+	}
+	return err
 }
 
 func (tcp *TCPConn) GetSession() Session {
@@ -72,7 +71,7 @@ func (tcp *TCPConn) GetSession() Session {
 }
 
 func NewTCPConn(conn net.Conn, server *TCPServer) *TCPConn {
-	tcpConn := &TCPConn{conn: conn, session: server.sessionCreator()}
+	tcpConn := &TCPConn{conn: conn, session: server.sessionCreator(), done: make(chan struct{})}
 	return tcpConn
 }
 

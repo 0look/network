@@ -18,7 +18,7 @@ var (
 
 type Conn interface {
 	Close()
-	Write([]byte)
+	Write([]byte) error
 	GetSession() Session
 }
 
