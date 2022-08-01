@@ -3,6 +3,7 @@ package network
 import (
 	"encoding/binary"
 	"errors"
+	"net"
 	"time"
 )
 
@@ -19,6 +20,8 @@ var (
 type Conn interface {
 	Close()
 	Write([]byte) error
+	LocalAddr() net.Addr
+	RemoteAddr() net.Addr
 	GetSession() Session
 }
 

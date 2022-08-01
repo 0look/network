@@ -66,6 +66,14 @@ func (tcp *TCPConn) Write(b []byte) error {
 	return err
 }
 
+func (tcp *TCPConn) LocalAddr() net.Addr {
+	return tcp.LocalAddr()
+}
+
+func (tcp *TCPConn) RemoteAddr() net.Addr {
+	return tcp.RemoteAddr()
+}
+
 func (tcp *TCPConn) GetSession() Session {
 	return tcp.session
 }

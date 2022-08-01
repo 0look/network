@@ -2,6 +2,7 @@ package network
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"sync"
 
@@ -45,6 +46,14 @@ func (ws *WsConn) readPump() {
 
 func (ws *WsConn) Write(b []byte) error {
 	return ws.conn.WriteMessage(websocket.BinaryMessage, b)
+}
+
+func (ws *WsConn) LocalAddr() net.Addr {
+	return ws.conn.UnderlyingConn().LocalAddr()
+}
+
+func (ws *WsConn) RemoteAddr() net.Addr {
+	return ws.conn.UnderlyingConn().RemoteAddr()
 }
 
 func (ws *WsConn) GetSession() Session {
