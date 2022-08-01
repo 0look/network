@@ -71,7 +71,7 @@ func (tcp *TCPConn) GetSession() Session {
 }
 
 func NewTCPConn(conn net.Conn, server *TCPServer) *TCPConn {
-	tcpConn := &TCPConn{conn: conn, session: server.sessionCreator(), done: make(chan struct{})}
+	tcpConn := &TCPConn{conn: conn, session: server.sessionCreator(), server: server, done: make(chan struct{})}
 	return tcpConn
 }
 
