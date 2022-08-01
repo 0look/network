@@ -12,6 +12,7 @@ type WsConn struct {
 	conn    *websocket.Conn
 	session Session
 	once    sync.Once
+	done    chan struct{}
 }
 
 func (ws *WsConn) ServerIO() {
@@ -28,12 +29,17 @@ func (ws *WsConn) Close() {
 
 func (ws *WsConn) readPump() {
 	for {
-		_, message, err := ws.conn.ReadMessage()
-		if err != nil {
-			log.Printf("network read is err:%v", err)
-			break
+		select {
+		case <-ws.done:
+			return
+		default:
+			_, message, err := ws.conn.ReadMessage()
+			if err != nil {
+				log.Printf("network read is err:%v", err)
+				break
+			}
+			ws.session.OnMessage(message)
 		}
-		ws.session.OnMessage(message)
 	}
 }
 
@@ -46,7 +52,7 @@ func (ws *WsConn) GetSession() Session {
 }
 
 func NewWsConn(conn *websocket.Conn, sessionCreator func() Session) *WsConn {
-	wsConn := &WsConn{conn: conn, session: sessionCreator()}
+	wsConn := &WsConn{conn: conn, session: sessionCreator(), done: make(chan struct{})}
 	return wsConn
 }
 
