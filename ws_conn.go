@@ -51,6 +51,10 @@ func (ws *WsConn) Write(b []byte) {
 	ws.writeCh <- b
 }
 
+func (ws *WsConn) GetSession() Session {
+	return ws.session
+}
+
 func NewWsConn(conn *websocket.Conn, sessionCreator func() Session) *WsConn {
 	wsConn := &WsConn{conn: conn, session: sessionCreator(), writeCh: make(chan []byte)}
 	return wsConn

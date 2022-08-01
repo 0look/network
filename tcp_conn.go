@@ -66,6 +66,10 @@ func (tcp *TCPConn) Write(b []byte) {
 	tcp.writeCh <- b
 }
 
+func (tcp *TCPConn) GetSession() Session {
+	return tcp.session
+}
+
 func NewTCPConn(conn net.Conn, server *TCPServer) *TCPConn {
 	tcpConn := &TCPConn{conn: conn, session: server.sessionCreator()}
 	return tcpConn
