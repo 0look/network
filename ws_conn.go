@@ -1,6 +1,7 @@
 package network
 
 import (
+	"log"
 	"net/http"
 	"sync"
 
@@ -31,7 +32,7 @@ func (ws *WsConn) readPump() {
 	for {
 		_, message, err := ws.conn.ReadMessage()
 		if err != nil {
-			log.Println("read is err:%v", err)
+			log.Printf("network read is err:%v", err)
 			break
 		}
 		ws.session.OnMessage(message)
@@ -79,7 +80,7 @@ func (server *WsServer) Start(addr string) error {
 func (server *WsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("upgrade:", err)
+		log.Printf("network upgrade:%v", err)
 		return
 	}
 	defer c.Close()

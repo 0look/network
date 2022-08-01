@@ -4,13 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
-
-var log = logrus.WithFields(logrus.Fields{
-	"network": "network",
-})
 
 const (
 	writeWait  = 10 * time.Second

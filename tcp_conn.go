@@ -2,6 +2,7 @@ package network
 
 import (
 	"bufio"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -35,7 +36,7 @@ loop:
 			tcp.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			_, err := tcp.conn.Write(data)
 			if err != nil {
-				log.Errorf("write err:%v", err)
+				log.Printf("network write err:%v", err)
 				break loop
 			}
 		case <-ticker.C:
@@ -52,7 +53,7 @@ func (tcp *TCPConn) readPump() {
 		tcp.session.OnMessage(scanner.Bytes())
 	}
 	if err := scanner.Err(); err != nil {
-		log.Infof("tcp scan err:%v", err)
+		log.Printf("network tcp scan err:%v", err)
 	}
 }
 
@@ -88,7 +89,7 @@ func (server *TCPServer) Start(addr string) error {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Errorf("tcp accept is err:%v", err)
+			log.Printf("network tcp accept is err:%v", err)
 			continue
 		}
 		go func() {
