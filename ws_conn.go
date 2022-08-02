@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -18,7 +19,8 @@ type WsConn struct {
 
 func (ws *WsConn) ServerIO() {
 	ws.session.OnConnect(ws)
-	ws.readPump()
+	go ws.readPump()
+	ws.writePump()
 }
 
 func (ws *WsConn) Close() {
@@ -29,22 +31,39 @@ func (ws *WsConn) Close() {
 }
 
 func (ws *WsConn) readPump() {
+	ws.conn.SetReadDeadline(time.Now().Add(writeWait))
+	for {
+		_, message, err := ws.conn.ReadMessage()
+		if websocket.IsCloseError(err, websocket.CloseNoStatusReceived, websocket.CloseGoingAway) {
+			break
+		}
+		if err != nil {
+			log.Printf("network read is err:%v", err)
+			break
+		}
+		ws.session.OnMessage(message)
+
+	}
+}
+
+func (ws *WsConn) writePump() {
+	ticker := time.NewTicker(pingPeriod)
+	defer func() {
+		ticker.Stop()
+		ws.Close()
+	}()
 	for {
 		select {
+		case <-ticker.C:
+			ws.conn.SetWriteDeadline(time.Now().Add(writeWait))
 		case <-ws.done:
 			return
-		default:
-			_, message, err := ws.conn.ReadMessage()
-			if err != nil {
-				log.Printf("network read is err:%v", err)
-				break
-			}
-			ws.session.OnMessage(message)
 		}
 	}
 }
 
 func (ws *WsConn) Write(b []byte) error {
+	ws.conn.SetWriteDeadline(time.Now().Add(writeWait))
 	return ws.conn.WriteMessage(websocket.BinaryMessage, b)
 }
 
