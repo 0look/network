@@ -32,6 +32,7 @@ func (ws *WsConn) Close() {
 
 func (ws *WsConn) readPump() {
 	ws.conn.SetReadDeadline(time.Now().Add(writeWait))
+	ws.conn.SetPongHandler(func(string) error { ws.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, message, err := ws.conn.ReadMessage()
 		if websocket.IsCloseError(err, websocket.CloseNoStatusReceived, websocket.CloseGoingAway) {
