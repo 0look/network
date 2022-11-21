@@ -24,20 +24,14 @@ func (ws *WsConn) ServerIO() {
 }
 
 func (ws *WsConn) Close() {
-	ws.once.Do(func() {
-		ws.session.OnDisConnect()
-		ws.conn.Close()
-	})
+	ws.once.Do(func() { ws.session.OnDisConnect(); ws.conn.Close() })
 }
 
 func (ws *WsConn) readPump() {
-	ws.conn.SetReadDeadline(time.Now().Add(writeWait))
+	ws.conn.SetReadDeadline(time.Now().Add(pongWait))
 	ws.conn.SetPongHandler(func(string) error { ws.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, message, err := ws.conn.ReadMessage()
-		if websocket.IsCloseError(err, websocket.CloseNoStatusReceived, websocket.CloseGoingAway) {
-			break
-		}
 		if err != nil {
 			log.Printf("network read is err:%v", err)
 			break
@@ -49,10 +43,7 @@ func (ws *WsConn) readPump() {
 
 func (ws *WsConn) writePump() {
 	ticker := time.NewTicker(pingPeriod)
-	defer func() {
-		ticker.Stop()
-		ws.Close()
-	}()
+	defer func() { ticker.Stop(); ws.Close() }()
 	for {
 		select {
 		case <-ticker.C:
