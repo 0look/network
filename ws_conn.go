@@ -48,6 +48,10 @@ func (ws *WsConn) writePump() {
 		select {
 		case <-ticker.C:
 			ws.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := ws.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				log.Printf("network write ping is err:%v", err)
+				return
+			}
 		case <-ws.done:
 			return
 		}
