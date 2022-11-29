@@ -24,7 +24,7 @@ func (ws *WsConn) ServerIO() {
 }
 
 func (ws *WsConn) Close() {
-	ws.once.Do(func() { ws.session.OnDisConnect(); ws.conn.Close() })
+	ws.once.Do(func() { ws.session.OnDisConnect(); ws.done <- struct{}{}; ws.conn.Close() })
 }
 
 func (ws *WsConn) readPump() {
