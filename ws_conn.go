@@ -28,10 +28,14 @@ func (ws *WsConn) Close() {
 }
 
 func (ws *WsConn) readPump() {
+	defer func() { ws.Close() }()
 	ws.conn.SetReadDeadline(time.Now().Add(pongWait))
 	ws.conn.SetPongHandler(func(string) error { ws.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, message, err := ws.conn.ReadMessage()
+		if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
+			break
+		}
 		if err != nil {
 			log.Printf("network read is err:%v", err)
 			break
