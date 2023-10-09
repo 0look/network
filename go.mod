@@ -1,4 +1,4 @@
-module github.com/zqhhh/network
+module github.com/0look/network
 
 go 1.17
 
