@@ -1,4 +1,4 @@
-module github.com/0look/network
+module github.com/qilook/network
 
 go 1.17
 
