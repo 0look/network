@@ -1,4 +1,4 @@
-module github.com/qilook/network
+module github.com/zqb7/network
 
 go 1.17
 
